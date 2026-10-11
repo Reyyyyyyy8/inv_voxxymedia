@@ -18,7 +18,7 @@ export interface BastContentTemplate {
 export const DEFAULT_BAST_TEMPLATE: BastContentTemplate = {
   namaPerusahaan: 'VOXXY MEDIA INDONESIA',
   tagline: 'Digital Creative Agency',
-  alamatKantor: '- Office 8, Level 18-A SCBD Jl. Jendral Sudirman Kav 52-53 Jakarta Selatan 12190 Indonesia',
+  alamatKantor: 'Office 8, Level 18-A SCBD Jl. Jendral Sudirman Kav 52-53 Jakarta Selatan 12190 Indonesia',
   kontakKantor: 'Email: Voxxy@voxxymedia.com',
   judulSurat: 'BERITA ACARA SERAH TERIMA ASET OPERASIONAL (BAST)',
   kalimatPembuka: 'telah dilaksanakan serah terima fasilitas inventaris operasional kerja antara pihak GA dan pihak penerima fasilitas dengan rincian sebagai berikut:',
