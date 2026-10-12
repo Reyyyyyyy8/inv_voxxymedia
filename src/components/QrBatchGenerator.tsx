@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getQrCodeImageUrl } from '../utils/qrGenerator';
+import { INITIAL_CATEGORIES } from '../mockData';
 import { Printer, QrCode, Layers, Sliders } from 'lucide-react';
 
 interface QrBatchGeneratorProps {
@@ -86,10 +87,11 @@ export const QrBatchGenerator: React.FC<QrBatchGeneratorProps> = ({ logoUrl }) =
               onChange={e => setCategory(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono focus:outline-none focus:border-orange-500"
             >
-              <option value="LPT">LPT (Laptop)</option>
-              <option value="MON">MON (Monitor)</option>
-              <option value="HPN">HPN (Smartphone)</option>
-              <option value="PRN">PRN (Printer)</option>
+              {INITIAL_CATEGORIES.map(cat => (
+                <option key={cat.kode} value={cat.kode}>
+                  {cat.kode} ({cat.nama})
+                </option>
+              ))}
             </select>
           </div>
 

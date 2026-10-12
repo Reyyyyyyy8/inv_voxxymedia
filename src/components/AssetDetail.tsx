@@ -3,6 +3,14 @@ import { Asset, HandoverRecord } from '../types';
 import { formatRupiah, getQrCodeImageUrl } from '../utils/qrGenerator';
 import { 
   Laptop, 
+  Monitor,
+  Smartphone,
+  Printer,
+  Wifi,
+  Armchair,
+  Camera,
+  Zap,
+  Boxes,
   User, 
   Calendar, 
   MapPin, 
@@ -11,9 +19,10 @@ import {
   Edit, 
   QrCode, 
   CheckCircle2, 
-  Printer,
+  Printer as PrintIcon,
   ShieldCheck,
-  Undo2
+  Undo2,
+  Trash2
 } from 'lucide-react';
 
 interface AssetDetailProps {
@@ -24,6 +33,7 @@ interface AssetDetailProps {
   onStartHandover: () => void;
   onReturnAsset: () => void;
   onEditAsset: () => void;
+  onDeleteAsset?: (code: string) => void;
   onViewBast: (record: HandoverRecord) => void;
 }
 
@@ -35,9 +45,23 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onStartHandover,
   onReturnAsset,
   onEditAsset,
+  onDeleteAsset,
   onViewBast
 }) => {
   const assetHandovers = handovers.filter(h => h.kode_aset === asset.kode_aset);
+
+  const getCategoryIcon = (kategori: string) => {
+    switch (kategori) {
+      case 'MON': return <Monitor className="h-7 w-7" />;
+      case 'HPN': return <Smartphone className="h-7 w-7" />;
+      case 'PRN': return <Printer className="h-7 w-7" />;
+      case 'NET': return <Wifi className="h-7 w-7" />;
+      case 'FURN': return <Armchair className="h-7 w-7" />;
+      case 'AV': return <Camera className="h-7 w-7" />;
+      case 'ELK': return <Zap className="h-7 w-7" />;
+      default: return <Laptop className="h-7 w-7" />;
+    }
+  };
 
   const getStatusBadge = () => {
     switch (asset.status) {
@@ -71,7 +95,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 border border-orange-400/50 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-              <Laptop className="h-7 w-7" />
+              {getCategoryIcon(asset.kategori)}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -106,44 +130,61 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             </div>
           </div>
 
-          {isAdmin ? (
-            <div className="flex items-center gap-2">
+          {/* Action Buttons (CRUD) */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={onEditAsset}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition flex items-center gap-1.5 text-xs border border-slate-700 hover:border-orange-500/50"
+              title="Edit Spesifikasi & Data Aset"
+            >
+              <Edit className="h-3.5 w-3.5 text-orange-400" /> 
+              <span>Edit Data</span>
+            </button>
+            {onDeleteAsset && (
               <button
-                onClick={onEditAsset}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition flex items-center gap-1.5 text-xs border border-slate-700"
+                onClick={() => onDeleteAsset(asset.kode_aset)}
+                className="px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-semibold transition flex items-center gap-1.5 text-xs border border-rose-800/60 hover:border-rose-600"
+                title="Hapus Unit dari Database"
               >
-                <Edit className="h-3.5 w-3.5" /> Edit Data
+                <Trash2 className="h-3.5 w-3.5 text-rose-400" /> 
+                <span>Hapus Unit</span>
               </button>
-              {asset.status === 'Tersedia' ? (
-                <button
-                  onClick={onStartHandover}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold shadow-md shadow-orange-500/30 transition flex items-center gap-1.5 text-xs"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" /> Serah Terima (Handover)
-                </button>
-              ) : (
-                <button
-                  onClick={onReturnAsset}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5 text-xs"
-                >
-                  <Undo2 className="h-3.5 w-3.5" /> Pengembalian Unit (Return)
-                </button>
-              )}
+            )}
+            {asset.status === 'Tersedia' ? (
+              <button
+                onClick={onStartHandover}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold shadow-md shadow-orange-500/30 transition flex items-center gap-1.5 text-xs"
+              >
+                <ArrowRightLeft className="h-3.5 w-3.5" /> Serah Terima (Handover)
+              </button>
+            ) : (
+              <button
+                onClick={onReturnAsset}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5 text-xs"
+              >
+                <Undo2 className="h-3.5 w-3.5" /> Pengembalian Unit (Return)
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status Mode Banner */}
+        {!isAdmin ? (
+          <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+              <ShieldCheck className="h-4 w-4 text-orange-400 shrink-0" />
+              <span>Aksi Edit, Hapus & Serah Terima diproteksi PIN (Default: <code className="text-orange-400 font-bold font-mono">260488</code>).</span>
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                Mode Publik (Hanya Lihat)
-              </span>
+            {onRequestAdminLogin && (
               <button
                 onClick={onRequestAdminLogin}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition"
+                className="text-[11px] text-orange-400 hover:text-orange-300 font-bold underline shrink-0"
               >
-                <ShieldCheck className="h-3.5 w-3.5" /> Otorisasi Admin IT
+                Buka Kunci PIN
               </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : null}
 
         {/* Public Notice Banner if not logged in */}
         {!isAdmin && (

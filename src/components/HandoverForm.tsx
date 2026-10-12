@@ -12,12 +12,19 @@ import {
   FileCheck2, 
   User, 
   Laptop,
+  Monitor,
+  Smartphone,
+  Printer,
+  Wifi,
+  Armchair,
+  Camera,
+  Zap,
+  Boxes,
   AlertCircle,
   Eye,
   FileText,
   ChevronRight,
-  Sparkles,
-  Smartphone
+  Sparkles
 } from 'lucide-react';
 
 interface HandoverFormProps {
@@ -27,14 +34,62 @@ interface HandoverFormProps {
   onSubmit: (record: HandoverRecord) => void;
 }
 
-const ACCESSORIES_LIST = [
-  'Charger Adapter Original',
-  'Kabel Power / USB-C Cord',
-  'Tas Laptop / Backpack Kantor',
-  'Mouse Wireless / Bluetooth',
-  'Dongle HDMI / Multi-Port Adapter',
-  'Headset / Earphone Meeting'
-];
+// Aksesoris adaptif sesuai kategori aset
+const DEFAULT_ACCESSORIES_MAP: Record<string, string[]> = {
+  LPT: [
+    'Charger Adapter Original',
+    'Kabel Power / USB-C Cord',
+    'Tas Laptop / Backpack Kantor',
+    'Mouse Wireless / Bluetooth',
+    'Dongle HDMI / Multi-Port Adapter',
+    'Headset / Earphone Meeting'
+  ],
+  MON: [
+    'Kabel Power Display',
+    'Kabel HDMI / DisplayPort High-Speed',
+    'Kabel Type-C to Type-C 90W',
+    'Stand / Kaki Monitor Original',
+    'Adaptor Daya Eksternal'
+  ],
+  HPN: [
+    'Kepala Charger Fast Charging',
+    'Kabel Data USB-C / Lightning',
+    'Casing Proteksi Kantor',
+    'Ejector SIM Card Pin',
+    'Box & Kartu Garansi'
+  ],
+  PRN: [
+    'Kabel Power Printer',
+    'Kabel USB Printer High Speed',
+    'Buku Manual & CD Driver',
+    'Tinta Botol Cadangan / Cartridge'
+  ],
+  NET: [
+    'Kabel Power / PoE Adapter',
+    'Kabel Patch Cord LAN Cat6',
+    'Rackmount Kit / Bracket Dinding',
+    'Kunci Rack Server'
+  ],
+  FURN: [
+    'Kunci Lemari / Laci Meja',
+    'Headrest Ergonomis',
+    'Bantalan Lumbar Support',
+    'Kunci L / Alat Rakit Cadangan'
+  ],
+  AV: [
+    'Baterai Original + Cadangan',
+    'Charger Baterai Dual Slot',
+    'Lensa Kit / Filter UV',
+    'Tali Strap Kamera',
+    'Memory Card SDXC High-Speed',
+    'Hardcase / Tas Kamera'
+  ],
+  ELK: [
+    'Remote Control Original + Baterai',
+    'Kabel Power AC / Steker Industri',
+    'Kartu Garansi Resmi & Manual Book'
+  ]
+};
 
 export const HandoverForm: React.FC<HandoverFormProps> = ({
   asset,
@@ -51,11 +106,11 @@ export const HandoverForm: React.FC<HandoverFormProps> = ({
   const [departemen, setDepartemen] = useState('Creative & Video Production');
   const [jabatan, setJabatan] = useState('');
   const [kondisiFisik, setKondisiFisik] = useState('Unit normal, fisik mulus, siap pakai untuk operasional pekerjaan');
-  const [kelengkapan, setKelengkapan] = useState<string[]>([
-    'Charger Adapter Original',
-    'Kabel Power / USB-C Cord',
-    'Tas Laptop / Backpack Kantor'
-  ]);
+  const availableAccessories = DEFAULT_ACCESSORIES_MAP[asset.kategori] || DEFAULT_ACCESSORIES_MAP.LPT;
+
+  const [kelengkapan, setKelengkapan] = useState<string[]>(() => {
+    return availableAccessories.slice(0, 3);
+  });
   const [catatanKelengkapan, setCatatanKelengkapan] = useState('');
   
   const [ttdPenerima, setTtdPenerima] = useState('');
@@ -69,6 +124,19 @@ export const HandoverForm: React.FC<HandoverFormProps> = ({
       setKelengkapan(kelengkapan.filter(i => i !== item));
     } else {
       setKelengkapan([...kelengkapan, item]);
+    }
+  };
+
+  const getCategoryIcon = (catCode: string) => {
+    switch (catCode) {
+      case 'MON': return <Monitor className="h-6 w-6" />;
+      case 'HPN': return <Smartphone className="h-6 w-6" />;
+      case 'PRN': return <Printer className="h-6 w-6" />;
+      case 'NET': return <Wifi className="h-6 w-6" />;
+      case 'FURN': return <Armchair className="h-6 w-6" />;
+      case 'AV': return <Camera className="h-6 w-6" />;
+      case 'ELK': return <Zap className="h-6 w-6" />;
+      default: return <Laptop className="h-6 w-6" />;
     }
   };
 
@@ -187,7 +255,7 @@ export const HandoverForm: React.FC<HandoverFormProps> = ({
           <div className="p-4 md:p-5 rounded-3xl bg-slate-900 border border-orange-500/30 flex items-center justify-between">
             <div className="flex items-center gap-3.5">
               <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0">
-                <Laptop className="h-6 w-6" />
+                {getCategoryIcon(asset.kategori)}
               </div>
               <div>
                 <div className="text-xs font-mono text-orange-400 font-bold">{asset.kode_aset}</div>
@@ -203,7 +271,7 @@ export const HandoverForm: React.FC<HandoverFormProps> = ({
           {/* Identitas Penerima */}
           <div className="p-5 md:p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
             <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-slate-800 pb-2">
-              <User className="h-4 w-4 text-orange-400" /> Identitas Penerima Laptop
+              <User className="h-4 w-4 text-orange-400" /> Identitas Penerima Fasilitas Kantor
             </div>
 
             <div className="grid md:grid-cols-2 gap-3.5 text-xs">
@@ -277,7 +345,7 @@ export const HandoverForm: React.FC<HandoverFormProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              {ACCESSORIES_LIST.map((item, idx) => {
+              {availableAccessories.map((item, idx) => {
                 const checked = kelengkapan.includes(item);
                 return (
                   <button

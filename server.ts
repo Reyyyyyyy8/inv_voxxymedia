@@ -195,7 +195,39 @@ app.post('/api/assets/:code/return', (req, res) => {
   res.json({ success: true, message: 'Unit berhasil dikembalikan ke status Tersedia', asset: targetAsset });
 });
 
-// 7. CONFIG & GOOGLE SHEETS SYNC URL
+// 7. DELETE ASSET
+app.delete('/api/assets/:code', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { pin, operatorEmail } = req.body;
+  const db = readDb();
+
+  if (pin && pin !== db.config?.adminPin) {
+    return res.status(403).json({ success: false, message: 'PIN Admin salah!' });
+  }
+
+  const assetIndex = (db.assets || []).findIndex((a: any) => a.kode_aset.toUpperCase() === code);
+  if (assetIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Aset tidak ditemukan' });
+  }
+
+  const deletedAsset = db.assets[assetIndex];
+  db.assets.splice(assetIndex, 1);
+
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  db.logs.unshift({
+    id: `LOG-${Date.now().toString().slice(-4)}`,
+    timestamp: now,
+    user_admin: operatorEmail || 'reyhanfajri88@gmail.com',
+    aksi: 'HAPUS_ASET',
+    kode_aset: code,
+    deskripsi: `Penghapusan unit ${deletedAsset.merk} ${deletedAsset.tipe_model} (SN: ${deletedAsset.nomor_seri}) dari database.`
+  });
+
+  writeDb(db);
+  res.json({ success: true, message: `Unit ${code} berhasil dihapus dari database` });
+});
+
+// 8. CONFIG & GOOGLE SHEETS SYNC URL
 app.post('/api/config', (req, res) => {
   const { config, pin } = req.body;
   const db = readDb();

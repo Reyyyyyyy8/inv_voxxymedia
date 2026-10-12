@@ -15,7 +15,9 @@ import {
   CheckCircle2, 
   Image as ImageIcon,
   Upload,
-  Building
+  Building,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 interface SheetsViewerProps {
@@ -24,6 +26,8 @@ interface SheetsViewerProps {
   logs: ActivityLog[];
   config: SystemConfig;
   onUpdateConfig: (newConfig: SystemConfig) => void;
+  onEditAsset?: (asset: Asset) => void;
+  onDeleteAsset?: (code: string) => void;
 }
 
 export const SheetsViewer: React.FC<SheetsViewerProps> = ({
@@ -31,7 +35,9 @@ export const SheetsViewer: React.FC<SheetsViewerProps> = ({
   handovers,
   logs,
   config,
-  onUpdateConfig
+  onUpdateConfig,
+  onEditAsset,
+  onDeleteAsset
 }) => {
   const [activeSheetTab, setActiveSheetTab] = useState<'ASET' | 'HANDOVER' | 'LOG' | 'MASTER'>('ASET');
   const [sheetUrlInput, setSheetUrlInput] = useState(config.googleSheetsUrl || '');
@@ -237,6 +243,7 @@ export const SheetsViewer: React.FC<SheetsViewerProps> = ({
                   <th className="p-3.5">Status</th>
                   <th className="p-3.5">Pemegang</th>
                   <th className="p-3.5">Lokasi</th>
+                  <th className="p-3.5 text-center">Aksi (Kelola)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-200">
@@ -260,6 +267,30 @@ export const SheetsViewer: React.FC<SheetsViewerProps> = ({
                     </td>
                     <td className="p-3.5">{item.user_saat_ini || <span className="text-slate-500">-</span>}</td>
                     <td className="p-3.5 text-slate-400">{item.lokasi}</td>
+                    <td className="p-3.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {onEditAsset && (
+                          <button
+                            type="button"
+                            title="Edit Data"
+                            onClick={() => onEditAsset(item)}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-orange-500/20 text-slate-300 hover:text-orange-400 border border-slate-700 transition"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        {onDeleteAsset && (
+                          <button
+                            type="button"
+                            title="Hapus Unit"
+                            onClick={() => onDeleteAsset(item.kode_aset)}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border border-slate-700 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

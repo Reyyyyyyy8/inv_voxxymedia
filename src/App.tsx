@@ -10,6 +10,7 @@ import { QrBatchGenerator } from './components/QrBatchGenerator';
 import { SheetsViewer } from './components/SheetsViewer';
 import { TutorialGuide } from './components/TutorialGuide';
 import { PinModal } from './components/PinModal';
+import { DeleteModal } from './components/DeleteModal';
 import { FullInventoryView } from './components/FullInventoryView';
 import { generateNextAssetCode } from './utils/qrGenerator';
 import { 
@@ -91,6 +92,7 @@ export default function App() {
   const [selectedAssetCode, setSelectedAssetCode] = useState<string>('001-VMI-LPT');
   const [pendingNewCode, setPendingNewCode] = useState<string>('');
   const [activeBastHandover, setActiveBastHandover] = useState<HandoverRecord | null>(INITIAL_HANDOVERS[0]);
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
 
   // Security & PIN State
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
@@ -269,6 +271,67 @@ export default function App() {
     });
   };
 
+  // Hapus Aset (Delete)
+  const handleRequestDeleteAsset = (code: string) => {
+    const target = assets.find(a => a.kode_aset.toUpperCase() === code.toUpperCase());
+    if (!target) return;
+    executeWithPinGuard(() => {
+      setAssetToDelete(target);
+    });
+  };
+
+  const handleConfirmDeleteAsset = async () => {
+    if (!assetToDelete) return;
+    const code = assetToDelete.kode_aset;
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+
+    // Optimistic / Local update
+    setAssets(prev => prev.filter(a => a.kode_aset !== code));
+    const newLog: ActivityLog = {
+      id: `LOG-${Date.now().toString().slice(-4)}`,
+      timestamp: now,
+      user_admin: 'reyhanfajri88@gmail.com',
+      aksi: 'HAPUS_ASET',
+      kode_aset: code,
+      deskripsi: `Penghapusan unit ${assetToDelete.merk} ${assetToDelete.tipe_model} (SN: ${assetToDelete.nomor_seri}) dari database.`
+    };
+    setLogs(prev => [newLog, ...prev]);
+
+    try {
+      await fetch(`/api/assets/${code}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin: config.adminPin,
+          operatorEmail: 'reyhanfajri88@gmail.com'
+        })
+      });
+      fetch('/api/data').then(r => r.json()).then(j => {
+        if (j.data?.logs) setLogs(j.data.logs);
+      });
+    } catch (e) {
+      console.warn('Backend delete error:', e);
+    }
+
+    showToast(`Unit ${code} (${assetToDelete.merk} ${assetToDelete.tipe_model}) berhasil dihapus!`);
+    setAssetToDelete(null);
+
+    // Jika sedang di halaman detail/edit unit ini, arahkan ke daftar inventaris
+    if (selectedAssetCode === code) {
+      setActiveMainTab('inventory');
+      setAppScreen('scanner');
+    }
+  };
+
+  // Edit Aset
+  const handleRequestEditAsset = (assetOrCode: Asset | string) => {
+    const code = typeof assetOrCode === 'string' ? assetOrCode : assetOrCode.kode_aset;
+    setSelectedAssetCode(code);
+    executeWithPinGuard(() => {
+      setAppScreen('edit');
+    });
+  };
+
   const currentSelectedAsset = assets.find(a => a.kode_aset === selectedAssetCode);
 
   return (
@@ -287,6 +350,15 @@ export default function App() {
         onClose={() => setIsPinModalOpen(false)}
         onSuccess={handlePinSuccess}
         configuredPin={config.adminPin}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={!!assetToDelete}
+        assetCode={assetToDelete?.kode_aset || null}
+        assetName={assetToDelete ? `${assetToDelete.merk} ${assetToDelete.tipe_model}` : ''}
+        onClose={() => setAssetToDelete(null)}
+        onConfirm={handleConfirmDeleteAsset}
       />
 
       {/* Main App Bar (Clean Mobile Optimized) */}
@@ -442,9 +514,8 @@ export default function App() {
                   executeWithPinGuard(() => setAppScreen('handover'));
                 }}
                 onReturnAsset={handleReturnAsset}
-                onEditAsset={() => {
-                  executeWithPinGuard(() => setAppScreen('edit'));
-                }}
+                onEditAsset={() => handleRequestEditAsset(currentSelectedAsset)}
+                onDeleteAsset={handleRequestDeleteAsset}
                 onViewBast={record => {
                   setActiveBastHandover(record);
                   setAppScreen('bast');
@@ -465,6 +536,7 @@ export default function App() {
                 existingAsset={currentSelectedAsset}
                 onBack={() => setAppScreen('detail')}
                 onSave={handleSaveAsset}
+                onDelete={handleRequestDeleteAsset}
               />
             )}
 
@@ -501,9 +573,8 @@ export default function App() {
                   executeWithPinGuard(() => setAppScreen('handover'));
                 }}
                 onReturnAsset={handleReturnAsset}
-                onEditAsset={() => {
-                  executeWithPinGuard(() => setAppScreen('edit'));
-                }}
+                onEditAsset={() => handleRequestEditAsset(currentSelectedAsset)}
+                onDeleteAsset={handleRequestDeleteAsset}
                 onViewBast={record => {
                   setActiveBastHandover(record);
                   setAppScreen('bast');
@@ -520,6 +591,7 @@ export default function App() {
                 existingAsset={currentSelectedAsset}
                 onBack={() => setAppScreen('detail')}
                 onSave={handleSaveAsset}
+                onDelete={handleRequestDeleteAsset}
               />
             ) : appScreen === 'handover' && currentSelectedAsset ? (
               <HandoverForm
@@ -543,6 +615,8 @@ export default function App() {
                   setAppScreen('detail');
                 }}
                 onAddNewManual={handleAddNewManual}
+                onEditAsset={handleRequestEditAsset}
+                onDeleteAsset={handleRequestDeleteAsset}
               />
             )}
           </div>
@@ -561,6 +635,8 @@ export default function App() {
             logs={logs}
             config={config}
             onUpdateConfig={handleUpdateConfig}
+            onEditAsset={handleRequestEditAsset}
+            onDeleteAsset={handleRequestDeleteAsset}
           />
         )}
 

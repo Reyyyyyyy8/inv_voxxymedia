@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { Asset, AssetCondition } from '../types';
-import { ArrowLeft, Save, Laptop, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Boxes, AlertCircle, Trash2, Laptop, Monitor, Smartphone, Printer, Wifi, Armchair, Camera, Zap } from 'lucide-react';
+import { INITIAL_CATEGORIES } from '../mockData';
 
 interface AssetFormProps {
   initialCode?: string;
   existingAsset?: Asset | null;
   onBack: () => void;
   onSave: (asset: Asset) => void;
+  onDelete?: (code: string) => void;
 }
 
 export const AssetForm: React.FC<AssetFormProps> = ({
   initialCode = '',
   existingAsset,
   onBack,
-  onSave
+  onSave,
+  onDelete
 }) => {
   const isEditing = !!existingAsset;
 
@@ -24,10 +27,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   const [nomorSeri, setNomorSeri] = useState(existingAsset?.nomor_seri || '');
   const [spesifikasi, setSpesifikasi] = useState(existingAsset?.spesifikasi || '');
   const [tglBeli, setTglBeli] = useState(existingAsset?.tgl_beli || new Date().toISOString().split('T')[0]);
-  const [harga, setHarga] = useState(existingAsset?.harga ? existingAsset.harga.toString() : '14500000');
+  const [harga, setHarga] = useState(existingAsset?.harga ? existingAsset.harga.toString() : '5000000');
   const [vendor, setVendor] = useState(existingAsset?.vendor || 'PT Sentra Pratama Niaga');
   const [kondisi, setKondisi] = useState<AssetCondition>(existingAsset?.kondisi || 'Sangat Baik (Baru)');
-  const [lokasi, setLokasi] = useState(existingAsset?.lokasi || 'Voxxy HQ - Ruang Server Lt. 2');
+  const [lokasi, setLokasi] = useState(existingAsset?.lokasi || 'Voxxy HQ - Ruang Server / IT Lt. 2');
   const [catatan, setCatatan] = useState(existingAsset?.catatan || '');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -39,11 +42,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       return;
     }
     if (!tipeModel.trim()) {
-      setErrorMsg('Tipe model laptop wajib diisi!');
+      setErrorMsg('Tipe model / nama barang wajib diisi!');
       return;
     }
     if (!nomorSeri.trim()) {
-      setErrorMsg('Nomor seri fisik (SN) wajib diisi!');
+      setErrorMsg('Nomor seri fisik (SN) atau barcode pabrik wajib diisi!');
       return;
     }
 
@@ -54,7 +57,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     const assetData: Asset = {
       kode_aset: kodeAset.trim().toUpperCase(),
       kategori,
-      merk,
+      merk: merk.trim(),
       tipe_model: tipeModel.trim(),
       nomor_seri: nomorSeri.trim().toUpperCase(),
       spesifikasi: spesifikasi.trim(),
@@ -74,6 +77,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     onSave(assetData);
   };
 
+  const getCategoryIcon = (catCode: string) => {
+    switch (catCode) {
+      case 'MON': return <Monitor className="h-6 w-6" />;
+      case 'HPN': return <Smartphone className="h-6 w-6" />;
+      case 'PRN': return <Printer className="h-6 w-6" />;
+      case 'NET': return <Wifi className="h-6 w-6" />;
+      case 'FURN': return <Armchair className="h-6 w-6" />;
+      case 'AV': return <Camera className="h-6 w-6" />;
+      case 'ELK': return <Zap className="h-6 w-6" />;
+      default: return <Laptop className="h-6 w-6" />;
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
@@ -86,22 +102,22 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           <ArrowLeft className="h-4 w-4" /> Batal / Kembali
         </button>
         <span className="text-xs font-bold text-orange-400 bg-orange-500/10 px-3.5 py-1 rounded-full border border-orange-500/20">
-          {isEditing ? 'Perbarui Data Aset' : 'Registrasi Aset Baru'}
+          {isEditing ? 'Perbarui Data Aset Kantor' : 'Registrasi Inventaris Baru'}
         </span>
       </div>
 
       <div className="p-5 rounded-3xl bg-slate-900 border border-orange-500/30 flex items-center gap-4">
         <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 shrink-0">
-          <Laptop className="h-6 w-6" />
+          {getCategoryIcon(kategori)}
         </div>
         <div>
           <h3 className="text-base font-black text-white">
-            {isEditing ? `Edit Aset: ${existingAsset.kode_aset}` : 'Form Registrasi Unit Laptop'}
+            {isEditing ? `Edit Aset: ${existingAsset.kode_aset}` : 'Form Registrasi Inventaris Kantor'}
           </h3>
           <p className="text-xs text-slate-400">
             {isEditing
-              ? 'Perbarui spesifikasi atau catatan kondisi fisik perangkat.'
-              : 'Lengkapi identitas fisik perangkat untuk didaftarkan ke inventaris.'}
+              ? 'Perbarui spesifikasi, lokasi, atau catatan kondisi fisik perangkat.'
+              : 'Daftarkan perlengkapan kantor (laptop, PC, monitor, kamera, furnitur, AC, dll).'}
           </p>
         </div>
       </div>
@@ -117,7 +133,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
           <div className="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-2">
-            1. Identitas Perangkat
+            1. Klasifikasi & Identitas Barang
           </div>
 
           <div className="grid md:grid-cols-3 gap-3.5 text-xs">
@@ -134,70 +150,73 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </div>
 
             <div>
-              <label className="text-slate-300 font-semibold block mb-1">Kategori</label>
+              <label className="text-slate-300 font-semibold block mb-1">Kategori Inventaris *</label>
               <select
                 value={kategori}
-                onChange={e => setKategori(e.target.value)}
+                onChange={e => {
+                  setKategori(e.target.value);
+                  // Update code category prefix if still default pattern
+                  if (!isEditing && kodeAset.includes('-VMI-')) {
+                    const parts = kodeAset.split('-VMI-');
+                    setKodeAset(`${parts[0]}-VMI-${e.target.value}`);
+                  }
+                }}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500"
               >
-                <option value="LPT">LPT - Laptop / Notebook</option>
-                <option value="MON">MON - Monitor Eksternal</option>
-                <option value="HPN">HPN - Smartphone Kantor</option>
-                <option value="PRN">PRN - Printer & Scanner</option>
+                {INITIAL_CATEGORIES.map(cat => (
+                  <option key={cat.kode} value={cat.kode}>
+                    {cat.kode} - {cat.nama}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="text-slate-300 font-semibold block mb-1">Merk / Brand *</label>
-              <select
+              <label className="text-slate-300 font-semibold block mb-1">Merk / Brand / Vendor *</label>
+              <input
+                type="text"
+                required
                 value={merk}
                 onChange={e => setMerk(e.target.value)}
+                placeholder="Lenovo / Apple / Dell / Ergohuman / Daikin"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500"
-              >
-                <option value="Lenovo">Lenovo</option>
-                <option value="Apple">Apple</option>
-                <option value="ASUS">ASUS</option>
-                <option value="Dell">Dell</option>
-                <option value="HP">HP</option>
-                <option value="Acer">Acer</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
+              />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-3.5 text-xs">
             <div>
-              <label className="text-slate-300 font-semibold block mb-1">Tipe / Model Lengkap *</label>
+              <label className="text-slate-300 font-semibold block mb-1">Tipe / Model / Nama Barang *</label>
               <input
                 type="text"
                 required
                 value={tipeModel}
                 onChange={e => setTipeModel(e.target.value)}
-                placeholder="ThinkPad E14 Gen 4 / MacBook Pro 14"
+                placeholder="ThinkPad E14 Gen 4 / Meja Standing Desk / AC 2PK"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500"
               />
             </div>
 
             <div>
-              <label className="text-slate-300 font-semibold block mb-1">Nomor Seri Fisik (SN) *</label>
+              <label className="text-slate-300 font-semibold block mb-1">Nomor Seri Fisik (SN) / Barcode *</label>
               <input
                 type="text"
                 required
                 value={nomorSeri}
                 onChange={e => setNomorSeri(e.target.value)}
-                placeholder="PF-3X92KM / C02HL99..."
+                placeholder="PF-3X92KM / SN-4029188 / TANPA-SN-01"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono focus:outline-none focus:border-orange-500"
               />
             </div>
           </div>
 
           <div className="text-xs">
-            <label className="text-slate-300 font-semibold block mb-1">Spesifikasi Detail (CPU, RAM, SSD)</label>
+            <label className="text-slate-300 font-semibold block mb-1">Spesifikasi Detail / Keterangan Fisik</label>
             <input
               type="text"
               value={spesifikasi}
               onChange={e => setSpesifikasi(e.target.value)}
-              placeholder="Core i5-1235U, RAM 16GB, SSD 512GB"
+              placeholder="Contoh: Core i7, RAM 16GB / Resolusi 4K IPS / Full Mesh Ergonomis / 17.100 BTU"
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500"
             />
           </div>
@@ -279,20 +298,34 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-xs font-bold text-white shadow-lg shadow-orange-500/25 flex items-center gap-2 transition"
-          >
-            <Save className="h-4 w-4" /> {isEditing ? 'Perbarui Data' : 'Simpan Data Aset'}
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          {isEditing && onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(existingAsset.kode_aset)}
+              className="px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs border border-rose-800/60 flex items-center gap-1.5 transition"
+            >
+              <Trash2 className="h-4 w-4 text-rose-400" /> Hapus Unit Ini
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-xs font-bold text-white shadow-lg shadow-orange-500/25 flex items-center gap-2 transition"
+            >
+              <Save className="h-4 w-4" /> {isEditing ? 'Perbarui Data' : 'Simpan Data Aset'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

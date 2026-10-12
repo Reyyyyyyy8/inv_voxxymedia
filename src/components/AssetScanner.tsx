@@ -39,13 +39,13 @@ export const AssetScanner: React.FC<AssetScannerProps> = ({
       <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-orange-500/30 p-6 md:p-8 shadow-2xl shadow-orange-950/20 space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-500/15 to-blue-500/15 text-orange-400 border border-orange-500/30">
-            <Scan className="h-3.5 w-3.5" /> Scanner Fisik Aset
+            <Scan className="h-3.5 w-3.5" /> Scanner Fisik Aset Kantor
           </div>
           <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
-            Pemindaian QR Code Laptop
+            Pemindaian QR Code Inventaris Kantor
           </h2>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Arahkan kamera ke stiker QR Code pada laptop untuk memuat profil aset atau memulai serah terima.
+            Arahkan kamera ke stiker QR Code pada unit inventaris (laptop, monitor, kursi, PC, kamera, AC, dll) untuk memuat profil aset atau memulai serah terima.
           </p>
         </div>
 

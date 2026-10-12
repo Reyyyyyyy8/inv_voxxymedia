@@ -57,7 +57,7 @@ export interface ActivityLog {
   id: string;
   timestamp: string;
   user_admin: string;
-  aksi: 'REGISTRASI_BARU' | 'UPDATE_DATA' | 'HANDOVER' | 'RETURN' | 'GENERATE_QR';
+  aksi: 'REGISTRASI_BARU' | 'UPDATE_DATA' | 'HANDOVER' | 'RETURN' | 'GENERATE_QR' | 'HAPUS_ASET';
   kode_aset: string;
   deskripsi: string;
 }
